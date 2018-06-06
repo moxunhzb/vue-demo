@@ -1,0 +1,273 @@
+var xwz = {
+
+	init : function () {
+		xwz.click();
+        xwz.scroll();
+	},
+	click : function () {
+		$(document).on("click ", "#nav_mobile", function (e) {
+			var $container = $("#container");
+			if ($container.css('left') == '0px'||$container.css('left') =='auto' ) {
+				xwz.navMenuMobile.open();
+			} else {
+				xwz.navMenuMobile.close();
+			}
+		}).on("click", "#tab_main_nav_close_mobile", function (e) {
+			xwz.navMenuMobile.close();
+		}).on("click", "#close_tip img", function (e) {
+			$("#close_tip").hide();
+		})
+       .on("click", ".jump", function (e) {
+           $('.map').addClass('hidden');
+           $('.real-map').show().removeClass('hidden');
+           window.scrollTo(0, document.body.scrollHeight);//滑至底部
+        })
+          //搜索框的点击事件
+   /*       .on("click", ".search-index", function (e) {
+        	  	var warn="请输入关键字";
+         		var uText = $('#searchIndex').val();
+         		
+         		if($.trim(uText)==""){
+         			alert(warn);return false;
+         		}else{
+         		  window.location = "/xwz/cn/hlPlat/pages/sitesearch.html?searchIndex="+uText
+         		}
+//                if( $('.search-index').hasClass('close1')){
+//                    $('.search-index').removeClass('close1').css('margin-right','50px');
+//                    $('.navlist').show();
+//                    $('.search-li').hide();
+//                    $('.search-index').find('img').attr("src","/xwz/cn/images/search.png");
+//                }else{
+//                    $('.search-index').addClass('close1').css('margin-right','200px');
+//                    $('.navlist').hide();
+//                    $('.search-li').show();
+//                    $(this).find('img').attr("src","/xwz/cn/images/cancel.png");
+//                }
+
+               // e.stopPropagation();
+          })*/
+          //隐藏搜索框的点击事件
+          	.on("click", ".search-hidden-btn", function (e) {
+        	  	var warn="请输入关键字";
+         		var uText = $('#searchIndex-hidden-input1').val();
+         		
+         		if($.trim(uText)==""){
+         			alert(warn);return false;
+         		}else{
+         		  window.location = "/cn/hlPlat/pages/sitesearch.html?searchIndex="+uText
+         		}
+          })
+          .on("click", ".js-search-show", function (e) {
+			$(".js-search-header").slideToggle();
+			return false;
+		})
+		//mobile
+		.on("click", "#footer_nav_mobile_back_to_top", function (e) {
+			window.scrollTo(0, 0);
+		});
+	},
+	//手机菜单
+    navMenuMobile : {
+
+		open : function () {
+			$("#container").css('left', '-100%');
+			$("#container").addClass("mobile-menu-open");
+			$('#tab_main_nav_close_mobile').addClass("show-table-cell").show().siblings('#tab_main_nav_mobile,#tab_main_need_help_mobile').addClass("hidden").hide();
+			$("#tab_main_nav_mobile_container").css({'right' : 0});
+			$("#tab_main_nav_mobile_container").addClass("mobile-menu-open");
+		},
+
+		close : function () {
+			$("#tab_main_nav_mobile_next_container").removeClass("mobile-menu-open")
+			.animate({
+				'right' : -100 + '%'
+			}, function () {
+				$("#tab_main_nav_mobile_container").removeClass("mobile-menu-open").css({
+					'right' : -100 + '%'
+				});
+				$("#container").removeClass("mobile-menu-open").css('left', 0);
+				$('#tab_main_nav_close_mobile').removeClass("show-table-cell").hide().siblings().removeClass("hidden").show();
+			});
+
+		}
+
+	},
+
+    scroll : function () {
+
+        $(window).scroll( function() {
+             if(document.documentElement.scrollTop+document.body.scrollTop>50){
+            	 $('#padding-top').css("display","block");
+                //$('.navlist').css({"margin-left":"15px"});
+            }else{
+            	//$('.navlist').css({"margin-left":"0px"});
+            	$('.stick').css("position","none");
+            	if($('#nav').css("position")=='relative'){
+            		$('#padding-top').css("display","none");
+            	}
+            	if($('#hotline').css("display")=="none"){//小屏
+                }else{//大屏
+                	$('#padding-top').css("display","none");
+                	$('.stick').css("position","relative");
+                	$('#nav').css("position","relative");
+                }
+            }
+             
+        } );
+    },
+	resize : function () {
+		var $windowWidth = $(window).width();
+		if ($windowWidth > 768) {
+			xwz.navMenuMobile.close();
+		}
+		if($('#hotline').css("display")=="none"){//小屏
+        }else{//大屏
+        	$('#padding-top').css("display","none");
+        	$('.stick').css("position","relative");
+        	$('#nav').css("position","relative");
+        }
+		//xwz.hero();
+	}
+
+};
+
+$(document).ready(function () {
+	xwz.init();
+	var $container = $("#container");
+	$container.css("left","0px");
+	/*
+     * 模拟网页中所有的下拉列表select
+     */
+    function selectModel() {
+        var $box = $('div.model-select-box');
+        var $option = $('ul.model-select-option', $box);
+        var $txt = $('div.model-select-text', $box);
+        var speed = 10;
+        /*
+         * 当机某个下拉列表时，显示当前下拉列表的下拉列表框
+         * 并隐藏页面中其他下拉列表
+         */
+        $txt.click(function(e) {
+            $option.not($(this).siblings('ul.model-select-option')).slideUp(speed, function() {
+                int($(this));
+            });
+            $(this).siblings('ul.model-select-option').slideToggle(speed, function() {
+                int($(this));
+            });
+            return false;
+        });
+        //点击选择，关闭其他下拉
+        /*
+         * 为每个下拉列表框中的选项设置默认选中标识 data-selected
+         * 点击下拉列表框中的选项时，将选项的 data-option 属性的属性值赋给下拉列表的 data-value 属性，并改变默认选中标识 data-selected
+         * 为选项添加 mouseover 事件
+         */
+        $option.find('li')
+            .each(function(index, element) {
+                if ($(this).hasClass('seleced')) {
+                    $(this).addClass('data-selected');
+                }
+            })
+            .mousedown(function() {
+                //赋值操作
+                $(this).parent().siblings('div.model-select-text').text($(this).text())
+                    .attr('data-value', $(this).attr('data-option'));
+                window.location=$(this).attr('href');
+                $option.slideUp(speed, function() {
+                    int($(this));
+                });
+                $(this).addClass('seleced data-selected').siblings('li').removeClass('seleced data-selected');
+                return false;
+            })
+            .mouseover(function() {
+                $(this).addClass('seleced').siblings('li').removeClass('seleced');
+            });
+        //点击文档，隐藏所有下拉
+        $(document).click(function(e) {
+            $option.slideUp(speed, function() {
+                int($(this));
+            });
+        });
+        //初始化默认选择
+        function int(obj) {
+            obj.find('li.data-selected').addClass('seleced').siblings('li').removeClass('seleced');
+        }
+    }
+    $(function() {
+        selectModel();
+    })
+});
+$(window).resize(function () {
+
+	xwz.resize();
+
+});
+//nav demo
+// bof
+(function ($) {
+
+	$(function ($) {
+		$(document).on("click", ".quick-links a", function (e) {
+			$('html, body').stop().animate({
+				scrollTop : $($(this).attr("data-section-selector")).offset().top
+			}, 700);
+			return false;
+		})
+		.on("click", ".js-prev-news", function (e) {
+			var i = $(".js-news-box > ul").data("i");
+			if (!i)
+				i = 0;
+			if (i <= 0)
+				i = $(".js-news-box > ul li").length;
+			i--;
+
+			$(".js-news-box > ul").animate({
+				"margin-top" : -i * $(".js-news-box > ul > li").first().height()
+			}, 500);
+			$(".js-news-box > ul").data("i", i);
+			return false;
+		})
+		.on("click", ".js-next-news", function (e) {
+			var i = $(".js-news-box > ul").data("i");
+			if (!i)
+				i = 0;
+			i++;
+			if (i >= $(".js-news-box > ul li").length)
+				i = 0;
+			$(".js-news-box > ul").animate({
+				"margin-top" : -i * $(".js-news-box > ul > li").first().height()
+			}, 500);
+			$(".js-news-box > ul").data("i", i);
+			return false;
+		})
+		.on("click", ".js-index-play-btn", function (e) {
+			$("html, body").animate({
+				scrollTop : $(".index-video").offset().top - 10
+			}, 1000);
+
+			$(".index-video-box .title").addClass("bg-alpha");
+			return false;
+		});
+	
+		
+	
+	});
+
+})(jQuery);
+// eof
+function keyDown1(e){
+	var ev= window.event||e;
+
+	//13是键盘上面固定的回车键
+	  if (ev.keyCode == "13") {
+			var warn="请输入关键字";
+     		var uText = $('#searchIndex-hidden-input1').val();
+     		
+     		if($.trim(uText)==""){
+     			alert(warn);
+     		}else{
+     		  window.location = "/cn/hlPlat/pages/sitesearch.html?searchIndex="+uText
+     		}
+	  }
+}
+

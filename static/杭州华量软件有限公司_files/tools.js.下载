@@ -1,0 +1,561 @@
+var PCTools = { };
+
+$(document).ready(function(){
+	// 验证用户是否登录
+	// PCTools.checkuser();
+	
+	
+	// 去掉超链接点击后的虚线框
+	$("a").bind("focus", function() {
+		this.blur();
+	});
+	
+	// 注册回车事件及首个焦点
+	PCTools.setKeyCode();
+	
+	// 屏蔽backspace
+	$(document).keydown(function(event){
+		if (event.keyCode == 8) {
+			var ele = event.srcElement || event.target;
+			if (ele.tagName.toUpperCase() == "INPUT" || ele.tagName.toUpperCase() == "TEXTAREA") {
+				if(ele.readOnly==true){
+					return false;
+				}
+				return true;
+			}
+			return false;
+		} else {
+			return true;
+		}
+	});
+	
+	// 使图片在智能终端可以自适应宽高(首页不执行)
+	if (!$("#indexScript")[0]) {
+		$(".page-section img").addClass("carousel-inner img-responsive").css("height","auto");
+	}
+});
+
+//注册回车事件及首个焦点
+PCTools.setKeyCode = function() {
+	$(".firstkeycode").focus();
+	$(".eventkeycode").keydown(function(e){
+		if (e.keyCode == 13) { // 回车
+			window.event.keyCode = 9;
+		}
+	});
+	$(".lastkeycode").keydown(function(e){
+		if (e.keyCode == 13) { // 回车
+			$("#btn_execute").click();
+		}
+	});
+};
+
+// 检查用户是否已经登录
+PCTools.checkuser = function() {
+	$.ajax({
+		url: "xwz.ajax",
+		type: "POST",
+		data: "handler=checkuser",
+		success: function(content){
+			var json = eval(content);
+			if (json.states == "success") {
+				// 用户已登录
+				if ($("#islogin").is(":hidden")) {
+					PCTools.setUserloginArea(json.userid, json.username);
+				}
+			} else {
+				// 用户未曾登录
+				$("#islogin").hide();
+				$("#unlogin").show();
+			}
+		}
+	});
+};
+
+// 用户登录
+PCTools.userlogin = function() {
+	if($("#username").val() == "") {
+		alert("用户名不能为空!", null, function(){
+			$("#username").focus();
+		});
+	} else if($("#password").val() == "") {
+		alert("密码不能为空!", null, function(){
+			$("#password").focus();
+		});
+	} else {
+		$.ajax({
+			url: "xwz.ajax",
+			type: "POST",
+			data: encodeURI("handler=userlogin&userid=" + $("#username").val() + "&password=" + hex_md5($("#password").val())),
+			success: function(content){
+				var json = eval(content);
+				if (json.states == "success") {
+					// 登录成功了
+					/*alert("登录成功！", null, function(){*/
+						location.reload();
+					/*});*/
+					/**
+					if ($("#mastreflash").length == 0) {
+						PCTools.closeBox("login");
+						PCTools.setUserloginArea($("#username").val(), json.username);
+					} else {
+						location.reload();
+					}**/
+				} else {
+					if (json.states == "sessioninvalid") {
+						alert("用户名或密码错误！");
+					} else {
+						alert(json.states);
+					}
+				}
+			}
+		});
+	}
+};
+
+// 页面正在建设中
+PCTools.nopage = function() {
+	alert("<div class='nopage'></div>");
+};
+
+// 用户注销
+PCTools.logout = function() {
+	PCTools.confirm("您确定要注销吗？","注销", function(){
+		PCTools.logoutTrue();
+	});
+};
+
+//用户注销
+PCTools.logoutTrue = function() {
+	$.ajax({
+		url: "xwz.ajax",
+		type: "POST",
+		data: "handler=userlogout",
+		success: function(content){
+			//alert("注销成功！", null, function(){
+			//});
+			/**
+			if ($("#mastreflash").length == 0) {
+				alert("注销成功！");
+				$("#islogin").hide();
+				$("#unlogin").show();
+				$("#username").val("");
+				$("#password").val("");
+			} else {
+				location.reload();
+			}**/
+			location.reload();
+		}
+	});
+};
+
+
+
+// 重置用户登录区域
+PCTools.setUserloginArea = function(userid, username) {
+	$("#usernamearea").text(username);
+	$("#unlogin").hide();
+	$("#islogin").show();
+};
+
+// 弹出window框
+PCTools.openWindow = function(url) {
+	window.open(url, '', 'height='+screen.availHeight+', width='+(screen.availWidth-10)+', top=0, left=0, toolbar=no, menubar=no, scrollbars=yes, resizable=yes,location=no, status=no');
+};
+
+// 加载页面
+PCTools.local = function(url) {
+	location.href = url;
+};
+
+
+// 翻页
+PCTools.turnPage = function(pageSize) {
+	var locationhref = location.href;
+	locationhref = locationhref.replace("action=delete", "action=search");
+	var url = PCTools.changeUrl(locationhref, "pageSize", pageSize);
+	PCTools.local(url);
+};
+
+// 转到
+PCTools.turnPageTo = function(inputId) {
+	PCTools.turnPage($("#" + inputId).val());
+};
+
+// 改变URL参数
+PCTools.changeUrl = function(url, param, value) {
+	var pattern=param+'=([^&]*)';
+	var replaceText=param+'='+value;
+	if(url.match(pattern)){
+		var tmp='/('+ param+'=)([^&]*)/gi';
+		tmp=url.replace(eval(tmp),replaceText);
+		return tmp;
+	}else{
+		if(url.match('[\?]')){
+			return url+'&'+replaceText;
+		}else{
+			return url+'?'+replaceText;
+		}
+	}
+	return url+'\n'+param+'\n'+value;
+};
+
+
+// 弹出DIV
+PCTools.showLoginBox = function(divid) {
+	PCTools.showBox(divid);
+	$("#username").focus();
+};
+
+// 首页密码登陆框
+PCTools.userloginkeydown= function() {
+	if (event.keyCode == 13) { // 回车
+		PCTools.userlogin();
+	}
+};
+
+
+// 弹出DIV
+PCTools.showBox = function(divid) {
+	$("#"+divid).lightbox_me({
+		centered:true
+	});
+};
+
+// 关闭div
+PCTools.closeBox = function(divid) {
+	$("#"+divid).trigger("close");
+};
+
+// 关闭页面
+PCTools.closePage = function() {
+	window.close();
+};
+
+// 关闭后台
+PCTools.closeAdimn = function() {
+	window.top.close();
+};
+// 设置值
+PCTools.setValue = function(divid, value) {
+	$("#"+divid).val(value);
+};
+
+/**
+ * alert("提示的内容，可以是html片段", "我是标题", function() {
+ *     // TODO
+ * });
+ */
+// 设定window.baseAlert为原始的alert
+window.baseAlert = window.alert;
+/**
+ * 重写alert
+ * @param	{String}	消息内容
+ * @param	{String}	消息框标题
+ * @param	{Function}	确定按钮回调函数
+ */
+window.alert = function(content, dialogtitle, callback) {
+	PCTools.alert(content, dialogtitle, callback);
+};
+/**
+ * confirm("你确定要继续吗? 提示的内容，可以是html片段", "我是标题", 
+ * function() {
+ *     // TODO YES
+ * }, function() {
+ *     // TODO NO
+ * });
+ */
+// 设定window.baseConfirm为原始的confirm
+window.baseConfirm = window.confirm;
+/**
+ * 重写confirm
+ * @param	{String}	消息内容
+ * @param	{String}	消息框标题
+ * @param	{Function}	确定按钮回调函数
+ * @param	{Function}	取消按钮回调函数
+ */
+window.confirm = function(content, dialogtitle, yes, no) {
+	PCTools.confirm(content, dialogtitle, yes, no);
+};
+
+/**
+ * 警告
+ * @param	{String}	消息内容
+ * @param	{String}	消息框标题
+ * @param	{Function}	确定按钮回调函数
+ * eg: alert('提示的内容，可以是html片段');
+ */
+PCTools.alert = function(content, dialogtitle, callback) {
+	var timer;
+	dialogtitle = dialogtitle || "信息提示框";
+	return artDialog({
+		id: 'Alert',
+		// icon: 'warning',
+		fixed: true,
+		// lock: true,
+	    title: dialogtitle,
+	    width: 300,
+	    height: 88, 
+		content: content + "",
+		ok: true,
+        init: function(here){
+        	var that = this, i = 3;
+            var fn = function () {
+                that.title(dialogtitle + " [" + i + '秒后关闭]');
+                !i && that.close();
+                i --;
+            };
+            timer = setInterval(fn, 1000);
+            fn();
+        },
+        close: function(here){
+            clearInterval(timer);
+            return callback && callback.call(this, here);
+        }
+	});
+};
+/**
+ * 确认
+ * @param	{String}	消息内容
+ * @param	{String}	消息框标题
+ * @param	{Function}	确定按钮回调函数
+ * @param	{Function}	取消按钮回调函数
+ * eg: confirm('提示的内容，可以是html片段');
+ */
+PCTools.confirm = function(content, dialogtitle, yes, no) {
+	dialogtitle = dialogtitle || "确认对话框";
+	return artDialog({
+		id : 'Confirm',
+		icon : 'question',
+		fixed : true,
+		lock : true,
+		opacity : .1,
+	    title: dialogtitle,
+		content : content,
+		ok : function(here) {
+			return yes && yes.call(this, here);
+		},
+		cancel : function(here) {
+			return no && no.call(this, here);
+		}
+	});
+};
+/**
+ * 提问
+ * @param	{String}	消息内容
+ * @param	{String}	消息框标题
+ * @param	{Function}	确定按钮回调函数
+ * @param	{Function}	取消按钮回调函数
+ * eg: PCTools.prompt('提示的内容，可以是html片段');
+ */
+PCTools.prompt = function (content, dialogtitle, callback, value) {
+	dialogtitle = dialogtitle || "弹出输入对话框";
+    value = value || '';
+    var input;
+    
+    return artDialog({
+        id: 'Prompt',
+        icon: 'question',
+        fixed: true,
+        lock: true,
+        opacity: .1,
+	    title: dialogtitle,
+        content: [
+            '<div style="margin-bottom:5px;font-size:12px">',
+                content,
+            '</div>',
+            '<div>',
+                '<input value="',
+                    value,
+                '" style="width:18em;padding:6px 4px" />',
+            '</div>'
+            ].join(''),
+        init: function () {
+            input = this.DOM.content.find('input')[0];
+            input.select();
+            input.focus();
+        },
+        ok: function (here) {
+            return callback && callback.call(this, input.value, here);
+        },
+        cancel: true
+    });
+};
+/**
+ * 短暂提示
+ * @param	{String}	提示内容
+ * @param	{Number}	显示时间 (默认1.5秒)
+ * eg: PCTools.tips('提示的内容，可以是html片段', 5);
+ */
+PCTools.tips = function (content, time, lockflag) {
+    return artDialog({
+        id: 'Tips',
+        title: false,
+        cancel: false,
+        fixed: true,
+        lock: lockflag,
+	    padding: 0,
+        time: time,
+	    content: content
+    });
+};
+/**
+ * 对话框
+ * @param	{String}	消息内容
+ * @param	{String}	消息框标题
+ * @param	{Function}	确定按钮回调函数
+ */
+PCTools.dialog = function(content, dialogtitle, callback) {
+	dialogtitle = dialogtitle || "弹出对话框";
+	return art.dialog({
+	    id: 'Dialog',
+	    padding: 0,
+	    fixed: true,
+	    title: dialogtitle,
+	    content: content,
+        ok: function (here) {
+            return callback && callback.call(this, input.value, here);
+        },
+	    cancel: true
+	});
+};
+/**
+ * 右下角滑动通知
+ * eg: PCTools.notice({
+    title: '通知',
+    width: 220,// 必须指定一个像素宽度值或者百分比，否则浏览器窗口改变可能导致artDialog收缩
+    content: '提示的内容，可以是html片段',
+    icon: 'face-sad', // 左侧图表
+    time: 5 // 5秒后关闭
+});
+ */
+PCTools.notice = function (options) {
+    var opt = options || {},
+        api, aConfig, hide, wrap, top,
+        duration = 800;
+	var dialogtitle = options.title || "通知";
+	var timer;
+    var config = {
+        id: 'Notice',
+        left: '100%',
+        top: '100%',
+        fixed: true,
+        drag: false,
+        resize: false,
+        follow: null,
+        lock: false,
+        init: function(here){
+            api = this;
+            aConfig = api.config;
+            wrap = api.DOM.wrap;
+            top = parseInt(wrap[0].style.top);
+            hide = top + wrap[0].offsetHeight;
+            wrap.css('top', hide + 'px')
+                .animate({top: top + 'px'}, duration, function () {
+                    opt.init && opt.init.call(api, here);
+                });
+            if (options.time) {
+            	var that = this, i = options.time;
+                var fn = function () {
+                    that.title(dialogtitle + " [" + i + '秒后关闭]');
+                    !i && that.close();
+                    i --;
+                };
+                timer = setInterval(fn, 1000);
+                fn();
+            }
+        },
+        close: function(here){
+            wrap.animate({top: hide + 'px'}, duration, function () {
+                opt.close && opt.close.call(this, here);
+                aConfig.close = $.noop;
+                api.close();
+            });
+            
+            if (options.time) {
+            	clearInterval(timer);
+            }
+            return false;
+        }
+    };	
+    for (var i in opt) {
+        if (config[i] === undefined) config[i] = opt[i];
+    };
+    return artDialog(config);
+};
+
+/**
+ * 弹出iframe对话框
+ * @param	{String}	页面地址
+ * @param	{String}	标题
+ * @param	{String}	宽度
+ * @param	{String}	高度
+ */
+PCTools.openArtDialog = function(url, dialogtitle, dialogwidth, dialogheight,time) {
+	var timer;
+	if (!dialogtitle) {
+		dialogtitle = "弹出窗口";
+	}
+	if (!dialogwidth) {
+		if ($(window).width() < 600) {
+			dialogwidth = "600";
+		} else {
+			dialogwidth = $(window).width() - 100;
+		}
+	}
+	if (!dialogheight) {
+		if ($(window).height() > 700) {
+			dialogheight = $(window).height() - 200;
+		} else {
+			dialogheight = "420";
+		}
+	}
+	var config={fixed:false, title:dialogtitle, width:dialogwidth, height: dialogheight};
+	config.init="";
+	if(time){
+		
+		config.init= function(here){
+	    	var that = this,i = time;
+	        var fn = function () {
+	            that.title(dialogtitle + " [" + i + '秒后关闭]');
+	            !i && that.close();
+	            i --;
+	        };
+	        timer = setInterval(fn, 1000);
+	        fn();
+	    }
+		config.close=function(here){
+            clearInterval(timer);
+        }
+	}
+	art.dialog.open(url, config);
+};
+
+/**
+ * 弹出加载层
+ */
+PCTools.loading = function() {
+	PCTools.tips('<div style="text-align:center;" id="loadswf"> <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="125" height="125" id="testFlash" align="middle"> <param name="movie" value="/xwz/cn/images/Loading.swf" /> <param name="wmode" value="transparent" /> <!--[if !IE]>--> <object type="application/x-shockwave-flash" data="/xwz/cn/images/Loading.swf" width="125" height="125" bgcolor="#FF6600"> <!--<![endif]--> <p>loading</p> <!--[if !IE]>--> </object> <!--<![endif]--> </object> </div>', 10000, true);
+};
+
+/**
+ * 关闭artDialog相关的弹出框
+ * @param	{String}	弹出框ID
+ */
+PCTools.close = function(id) {
+	var list = art.dialog.list;
+	for (var i in list) {
+	    list[i].close();
+	};
+};
+
+//获取页面宽度
+function getWidth(){
+	var width = document.documentElement.clientWidth == 0 ? document.body.clientWidth : document.documentElement.clientWidth;
+	return width;
+}
+//获取页面高度
+function getHeight(){
+	var height = document.documentElement.clientHeight == 0 ? document.body.clientHeight : document.documentElement.clientHeight;
+	return height;
+}
